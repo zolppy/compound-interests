@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compound Interest + Monthly Investment</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100svh;
+        background-color: black;
+        font-family: sans-serif;
+      }
+      main {
+        width: 520px;
+        background-color: darkslategrey;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        row-gap: 20px;
+      }
+      div {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+      }
+      input,
+      select {
+        padding: 5px;
+        border-radius: 4px;
+        border: none;
+      }
+      .result {
+        font-weight: bold;
+        color: #00ff88;
+        font-size: 1.2rem;
+      }
+      .profit {
+        font-weight: bold;
+        color: #ffaa00;
+        font-size: 1.2rem;
+      }
+      label {
+        color: #ddd;
+      }
+      h1 {
+        color: white;
+        text-align: center;
+        font-size: 1.5rem;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .note {
+        font-size: 0.9rem;
+        color: #aaa;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <form autocomplete="off">
+        <h1>📈 Daily Compound + Monthly Invest</h1>
+
+        <div>
+          <label for="initial-amount">Initial Capital (R$)</label>
+          <input
+            id="initial-amount"
+            type="number"
+            step="0.01"
+            min="0.01"
+            value="2500"
+            autocomplete="off"
+            placeholder="e.g., 2500"
+          />
+        </div>
+
+        <div>
+          <label for="diary-income">Current Daily Income (R$)</label>
+          <input
+            id="diary-income"
+            type="number"
+            step="0.01"
+            min="0"
+            value="1.22"
+            autocomplete="off"
+            placeholder="e.g., 1.22"
+          />
+        </div>
+
+        <div>
+          <label for="monthly-investment">Monthly Investment (R$)</label>
+          <input
+            id="monthly-investment"
+            type="number"
+            step="0.01"
+            min="0"
+            value="0"
+            autocomplete="off"
+            placeholder="e.g., 100"
+          />
+        </div>
+
+        <div>
+          <label for="counting-months">Period (months)</label>
+          <select id="counting-months">
+            <option value="0">Select</option>
+            <option value="1" selected>1 month (22 days)</option>
+            <option value="3">3 months (66 days)</option>
+            <option value="6">6 months (132 days)</option>
+            <option value="12">12 months (264 days)</option>
+            <option value="24">24 months (528 days)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <span>💰 Total after period:</span>
+          <span class="result">R$ 0,00</span>
+        </div>
+        <div class="row">
+          <span>📊 Profit earned:</span>
+          <span class="profit">R$ 0,00</span>
+        </div>
+
+        <p class="note">
+          * Daily rate = (daily income) / (initial capital).<br />
+          * Compounded daily for 22 days/month. Monthly investment added at
+          month end.<br />
+          * Profit = total − initial − (monthly × months).
+        </p>
+      </form>
+    </main>
+
+    <script>
+      // DOM elements
+      const initialInput = document.getElementById("initial-amount");
+      const incomeInput = document.getElementById("diary-income");
+      const monthlyInput = document.getElementById("monthly-investment");
+      const monthSelect = document.getElementById("counting-months");
+      const resultSpan = document.querySelector(".result");
+      const profitSpan = document.querySelector(".profit");
+
+      // Currency formatter for BRL
+      const formatter = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+
+      // Calculate future value with daily compounding and monthly contributions
+      function calculateFutureValue(initial, dailyIncome, monthly, months) {
+        // Guard clauses
+        if (initial <= 0 || dailyIncome < 0 || monthly < 0) return initial;
+        if (months <= 0) return initial;
+
+        const dailyRate = dailyIncome / initial; // fixed daily rate
+        const daysPerMonth = 22;
+
+        let balance = initial;
+
+        for (let m = 0; m < months; m++) {
+          // compound daily for one month
+          balance *= Math.pow(1 + dailyRate, daysPerMonth);
+          // add monthly investment at the end of the month
+          balance += monthly;
+        }
+
+        return balance;
+      }
+
+      // Update total and profit displays
+      function updateResults() {
+        const initial = Number(initialInput.value);
+        const dailyIncome = Number(incomeInput.value);
+        const monthly = Number(monthlyInput.value) || 0;
+        const months = Number(monthSelect.value);
+
+        const futureValue = calculateFutureValue(
+          initial,
+          dailyIncome,
+          monthly,
+          months,
+        );
+
+        const totalContributions = monthly * months;
+        const profit = futureValue - initial - totalContributions;
+
+        resultSpan.textContent = formatter.format(futureValue);
+        profitSpan.textContent = formatter.format(profit);
+      }
+
+      // Recalculate on any change
+      initialInput.addEventListener("input", updateResults);
+      incomeInput.addEventListener("input", updateResults);
+      monthlyInput.addEventListener("input", updateResults);
+      monthSelect.addEventListener("change", updateResults);
+
+      // Initial calculation
+      updateResults();
+    </script>
+  </body>
+</html>
